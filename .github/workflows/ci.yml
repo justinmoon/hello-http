@@ -53,12 +53,12 @@ jobs:
           sha="${GITHUB_SHA}"
           echo "Creating PR in configs repo to update hello-http to SHA: $sha"
           
-          # Clean up any existing directory
-          rm -rf /tmp/configs
+          # Use unique temp directory to avoid conflicts
+          TEMP_DIR="/tmp/configs-$$"
           
           # Clone configs repo using token
-          git clone "https://x-access-token:${GH_TOKEN}@github.com/justinmoon/configs.git" /tmp/configs
-          cd /tmp/configs
+          git clone "https://x-access-token:${GH_TOKEN}@github.com/justinmoon/configs.git" "$TEMP_DIR"
+          cd "$TEMP_DIR"
           
           # Configure git
           git config user.name 'hello-http-bot'
