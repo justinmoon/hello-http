@@ -53,6 +53,9 @@ jobs:
           sha="${GITHUB_SHA}"
           echo "Creating PR in configs repo to update hello-http to SHA: $sha"
           
+          # Configure git safe directory
+          git config --global --add safe.directory /tmp/configs
+          
           # Clone or pull configs repo
           if [ -d "/tmp/configs/.git" ]; then
             echo "Configs repo exists, pulling latest..."
