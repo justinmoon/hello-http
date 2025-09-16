@@ -3,6 +3,10 @@ on:
   push:
     branches: [ main ]
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -33,7 +37,7 @@ jobs:
       - name: Create PR in configs repo
         if: success()
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.INFRA_TOKEN }}
         run: |
           sha="${GITHUB_SHA}"
           echo "Creating PR in configs repo to update hello-http to SHA: $sha"
