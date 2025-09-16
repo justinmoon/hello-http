@@ -22,15 +22,24 @@ jobs:
           curl -f http://localhost:9000 || (kill $SERVER_PID; exit 1)
           kill $SERVER_PID
 
-      - name: Notify infra repo
+      - name: Notify configs repo
         if: success()
         env:
-          INFRA_TOKEN: ${{ secrets.INFRA_TOKEN }}
+          GH_TOKEN: ${{ secrets.INFRA_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
           sha="${GITHUB_SHA}"
-          echo "Dispatching to infra repo with SHA: $sha"
-          curl -sSf -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${INFRA_TOKEN}" \
-            https://api.github.com/repos/justinmoon/configs/dispatches \
-            -d "{\"event_type\":\"bump-app\",\"client_payload\":{\"app\":\"hello-http\",\"sha\":\"${sha}\"}}"
+          echo "Dispatching to configs repo with SHA: $sha"
+          
+          # Try with INFRA_TOKEN if available, otherwise this will fail
+          # (GITHUB_TOKEN can't dispatch to other repos)
+          if [ -n "${{ secrets.INFRA_TOKEN }}" ]; then
+            curl -sSf -X POST \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              https://api.github.com/repos/justinmoon/configs/dispatches \
+              -d "{\"event_type\":\"bump-app\",\"client_payload\":{\"app\":\"hello-http\",\"sha\":\"${sha}\"}}"
+          else
+            echo "⚠️ INFRA_TOKEN not configured - cannot dispatch to configs repo"
+            echo "For GitOps to work, add INFRA_TOKEN secret with repo dispatch permissions"
+            exit 0  # Don't fail the build
+          fi

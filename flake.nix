@@ -16,43 +16,24 @@
           #!${pkgs.bash}/bin/bash
           exec ${pkgs.python3}/bin/python - "$@" <<'PY'
           from http.server import BaseHTTPRequestHandler, HTTPServer
-          import os
-          import signal
-          import sys
           
-          PORT = int(os.environ.get("PORT", "9000"))
-          MSG = os.environ.get("HELLO_MSG", "Hello from GitOps v1")
+          # CHANGE THIS TO TEST DEPLOYMENTS
+          MESSAGE = "v1"
           
           class H(BaseHTTPRequestHandler):
               def log_message(self, format, *args):
-                  # Reduce noise in logs
-                  if self.path != '/health':
-                      super().log_message(format, *args)
+                  pass  # Silence logs
                       
               def do_GET(self):
-                  if self.path == '/health':
-                      self.send_response(200)
-                      self.send_header("Content-Type", "text/plain")
-                      self.end_headers()
-                      self.wfile.write(b"OK")
-                  else:
-                      body = MSG.encode("utf-8")
-                      self.send_response(200)
-                      self.send_header("Content-Type", "text/plain; charset=utf-8")
-                      self.send_header("Content-Length", str(len(body)))
-                      self.end_headers()
-                      self.wfile.write(body)
+                  body = MESSAGE.encode("utf-8")
+                  self.send_response(200)
+                  self.send_header("Content-Type", "text/plain")
+                  self.send_header("Content-Length", str(len(body)))
+                  self.end_headers()
+                  self.wfile.write(body)
           
-          def signal_handler(sig, frame):
-              print('\nShutting down gracefully...')
-              sys.exit(0)
-          
-          signal.signal(signal.SIGINT, signal_handler)
-          signal.signal(signal.SIGTERM, signal_handler)
-          
-          print(f"Starting hello-http server on port {PORT}")
-          print(f"Message: {MSG}")
-          HTTPServer(("0.0.0.0", PORT), H).serve_forever()
+          print(f"Starting hello-http server, message: {MESSAGE}")
+          HTTPServer(("0.0.0.0", 9000), H).serve_forever()
           PY
         '';
       in {
