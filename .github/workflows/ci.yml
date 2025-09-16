@@ -28,6 +28,18 @@ jobs:
           curl -f http://localhost:9000 || (kill $SERVER_PID; exit 1)
           kill $SERVER_PID
 
+      - name: Auto-merge PR
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Auto-merging PR #${{ github.event.pull_request.number }}"
+          gh pr merge ${{ github.event.pull_request.number }} \
+            --repo ${{ github.repository }} \
+            --squash \
+            --auto \
+            --delete-branch
+
       - name: Install gh CLI
         if: github.event_name == 'push'
         run: |
