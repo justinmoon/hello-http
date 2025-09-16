@@ -2,6 +2,8 @@ name: CI
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 permissions:
   contents: write
@@ -27,6 +29,7 @@ jobs:
           kill $SERVER_PID
 
       - name: Install gh CLI
+        if: github.event_name == 'push'
         run: |
           type gh || (curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
           && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
@@ -35,7 +38,7 @@ jobs:
           && sudo apt install gh -y)
       
       - name: Create PR in configs repo
-        if: success()
+        if: github.event_name == 'push'
         env:
           GH_TOKEN: ${{ secrets.INFRA_TOKEN }}
         run: |
