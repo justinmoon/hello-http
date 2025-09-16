@@ -18,7 +18,7 @@
           from http.server import BaseHTTPRequestHandler, HTTPServer
           
           # CHANGE THIS TO TEST DEPLOYMENTS
-          MESSAGE = "v17 - Self-hosted runners on Hetzner! 🚀"
+          MESSAGE = "v18 - Complete GitOps with self-hosted runners! ✅"
           
           class H(BaseHTTPRequestHandler):
               def log_message(self, format, *args):
