@@ -31,6 +31,9 @@ jobs:
       - name: Auto-merge PR
         if: github.event_name == 'pull_request'
         env:
+          # IMPORTANT: Must use INFRA_TOKEN (PAT) instead of GITHUB_TOKEN
+          # because GitHub Actions using GITHUB_TOKEN cannot trigger other workflows.
+          # We need the merge to trigger push CI on main branch to create configs PR.
           GH_TOKEN: ${{ secrets.INFRA_TOKEN }}
         run: |
           echo "Auto-merging PR #${{ github.event.pull_request.number }}"
