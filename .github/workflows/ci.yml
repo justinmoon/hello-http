@@ -1,0 +1,36 @@
+name: CI
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: DeterminateSystems/nix-installer-action@v14
+      
+      - name: Build server
+        run: nix build .#server
+      
+      - name: Test server starts
+        run: |
+          nix run .#server &
+          SERVER_PID=$!
+          sleep 2
+          curl -f http://localhost:9000 || (kill $SERVER_PID; exit 1)
+          kill $SERVER_PID
+
+      - name: Notify infra repo
+        if: success()
+        env:
+          INFRA_TOKEN: ${{ secrets.INFRA_TOKEN }}
+        run: |
+          sha="${GITHUB_SHA}"
+          echo "Dispatching to infra repo with SHA: $sha"
+          curl -sSf -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${INFRA_TOKEN}" \
+            https://api.github.com/repos/justinmoon/configs/dispatches \
+            -d "{\"event_type\":\"bump-app\",\"client_payload\":{\"app\":\"hello-http\",\"sha\":\"${sha}\"}}"
