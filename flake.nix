@@ -18,7 +18,7 @@
           from http.server import BaseHTTPRequestHandler, HTTPServer
           
           # CHANGE THIS TO TEST DEPLOYMENTS
-          MESSAGE = "v5 - Testing PR workflow!"
+          MESSAGE = "v6 - Full GitOps workflow test! 🚀"
           
           class H(BaseHTTPRequestHandler):
               def log_message(self, format, *args):
