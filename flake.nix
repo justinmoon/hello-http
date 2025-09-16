@@ -18,7 +18,7 @@
           from http.server import BaseHTTPRequestHandler, HTTPServer
           
           # CHANGE THIS TO TEST DEPLOYMENTS
-          MESSAGE = "v1"
+          MESSAGE = "v2"
           
           class H(BaseHTTPRequestHandler):
               def log_message(self, format, *args):
