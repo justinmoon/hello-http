@@ -22,24 +22,58 @@ jobs:
           curl -f http://localhost:9000 || (kill $SERVER_PID; exit 1)
           kill $SERVER_PID
 
-      - name: Notify configs repo
+      - name: Install gh CLI
+        run: |
+          type gh || (curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+          && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+          && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+          && sudo apt update \
+          && sudo apt install gh -y)
+      
+      - name: Create PR in configs repo
         if: success()
         env:
-          GH_TOKEN: ${{ secrets.INFRA_TOKEN || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           sha="${GITHUB_SHA}"
-          echo "Dispatching to configs repo with SHA: $sha"
+          echo "Creating PR in configs repo to update hello-http to SHA: $sha"
           
-          # Try with INFRA_TOKEN if available, otherwise this will fail
-          # (GITHUB_TOKEN can't dispatch to other repos)
-          if [ -n "${{ secrets.INFRA_TOKEN }}" ]; then
-            curl -sSf -X POST \
-              -H "Accept: application/vnd.github+json" \
-              -H "Authorization: Bearer ${GH_TOKEN}" \
-              https://api.github.com/repos/justinmoon/configs/dispatches \
-              -d "{\"event_type\":\"bump-app\",\"client_payload\":{\"app\":\"hello-http\",\"sha\":\"${sha}\"}}"
-          else
-            echo "⚠️ INFRA_TOKEN not configured - cannot dispatch to configs repo"
-            echo "For GitOps to work, add INFRA_TOKEN secret with repo dispatch permissions"
-            exit 0  # Don't fail the build
-          fi
+          # Clone configs repo
+          git clone https://github.com/justinmoon/configs.git /tmp/configs
+          cd /tmp/configs
+          
+          # Configure git
+          git config user.name 'hello-http-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          
+          # Create branch for the update
+          branch="bump-hello-http-${sha:0:7}"
+          git checkout -b "$branch"
+          
+          # Update flake.lock
+          nix flake lock \
+            --override-input hello-http "github:justinmoon/hello-http/${sha}" \
+            --update-input hello-http
+          
+          # Commit and push
+          git add flake.lock
+          git commit -m "bump: hello-http to ${sha:0:7}" || exit 0  # Exit if no changes
+          
+          # Push using GitHub token
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/justinmoon/configs.git"
+          git push origin "$branch"
+          
+          # Create PR using gh CLI
+          gh pr create \
+            --repo justinmoon/configs \
+            --base master \
+            --head "$branch" \
+            --title "Bump hello-http to ${sha:0:7}" \
+            --body "Automated PR to update hello-http to commit ${sha}
+            
+This PR was automatically created by the hello-http CI workflow.
+            
+Changes:
+- Updated flake.lock to use hello-http@${sha}
+
+After merging, the GitOps deployment will automatically apply this update."
