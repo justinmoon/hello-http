@@ -18,7 +18,7 @@
           from http.server import BaseHTTPRequestHandler, HTTPServer
           
           # CHANGE THIS TO TEST DEPLOYMENTS
-          MESSAGE = "v19 - Full automation pipeline working! 🎉🚀"
+          MESSAGE = "v21 - Fixed temp directory permissions! 🔧🚀"
           
           class H(BaseHTTPRequestHandler):
               def log_message(self, format, *args):
