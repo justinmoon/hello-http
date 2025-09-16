@@ -18,7 +18,7 @@
           from http.server import BaseHTTPRequestHandler, HTTPServer
           
           # CHANGE THIS TO TEST DEPLOYMENTS
-          MESSAGE = "v8 - Testing full automated GitOps pipeline! 🚀"
+          MESSAGE = "v9 - Fixed auto-merge timing! ⏰"
           
           class H(BaseHTTPRequestHandler):
               def log_message(self, format, *args):
