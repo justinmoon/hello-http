@@ -11,11 +11,11 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, nixos, hetzner]
     steps:
       - uses: actions/checkout@v4
       
-      - uses: DeterminateSystems/nix-installer-action@v14
+      # No need to install Nix - our Hetzner server already has it!
       
       - name: Build server
         run: nix build .#server
@@ -42,14 +42,7 @@ jobs:
             --squash \
             --delete-branch
 
-      - name: Install gh CLI
-        if: github.event_name == 'push'
-        run: |
-          type gh || (curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
-          && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
-          && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
-          && sudo apt update \
-          && sudo apt install gh -y)
+      # gh CLI is already installed on our self-hosted runner
       
       - name: Create PR in configs repo
         if: github.event_name == 'push'
