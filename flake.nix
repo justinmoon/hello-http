@@ -32,8 +32,10 @@
                   self.end_headers()
                   self.wfile.write(body)
           
-          print(f"Starting hello-http server, message: {MESSAGE}")
-          HTTPServer(("0.0.0.0", 9000), H).serve_forever()
+          import os
+          port = int(os.environ.get("PORT", "9000"))
+          print(f"Starting hello-http server on port {port}, message: {MESSAGE}")
+          HTTPServer(("0.0.0.0", port), H).serve_forever()
           PY
         '';
       in {

@@ -22,10 +22,11 @@ jobs:
       
       - name: Test server starts
         run: |
-          nix run .#server &
+          # Use a different port for testing since 9000 is used by deployed service
+          PORT=9001 nix run .#server &
           SERVER_PID=$!
           sleep 2
-          curl -f http://localhost:9000 || (kill $SERVER_PID; exit 1)
+          curl -f http://localhost:9001 || (kill $SERVER_PID; exit 1)
           kill $SERVER_PID
 
       - name: Auto-merge PR
