@@ -64,16 +64,20 @@ jobs:
           git push origin "$branch"
           
           # Create PR using gh CLI
+          cat > /tmp/pr-body.md << EOF
+          Automated PR to update hello-http to commit ${sha}
+          
+          This PR was automatically created by the hello-http CI workflow.
+          
+          Changes:
+          - Updated flake.lock to use hello-http@${sha}
+          
+          After merging, the GitOps deployment will automatically apply this update.
+          EOF
+          
           gh pr create \
             --repo justinmoon/configs \
             --base master \
             --head "$branch" \
             --title "Bump hello-http to ${sha:0:7}" \
-            --body "Automated PR to update hello-http to commit ${sha}
-            
-This PR was automatically created by the hello-http CI workflow.
-            
-Changes:
-- Updated flake.lock to use hello-http@${sha}
-
-After merging, the GitOps deployment will automatically apply this update."
+            --body-file /tmp/pr-body.md
