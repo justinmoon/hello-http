@@ -53,12 +53,18 @@ jobs:
           sha="${GITHUB_SHA}"
           echo "Creating PR in configs repo to update hello-http to SHA: $sha"
           
-          # Use unique temp directory to avoid conflicts
-          TEMP_DIR="/tmp/configs-$$"
-          
-          # Clone configs repo using token
-          git clone "https://x-access-token:${GH_TOKEN}@github.com/justinmoon/configs.git" "$TEMP_DIR"
-          cd "$TEMP_DIR"
+          # Clone or pull configs repo
+          if [ -d "/tmp/configs/.git" ]; then
+            echo "Configs repo exists, pulling latest..."
+            cd /tmp/configs
+            git fetch origin
+            git checkout master
+            git reset --hard origin/master
+          else
+            echo "Cloning configs repo..."
+            git clone "https://x-access-token:${GH_TOKEN}@github.com/justinmoon/configs.git" /tmp/configs
+            cd /tmp/configs
+          fi
           
           # Configure git
           git config user.name 'hello-http-bot'
